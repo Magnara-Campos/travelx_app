@@ -1,6 +1,56 @@
 import { API_BASE_URL } from './api';
 import { storageService } from './storageService';
 
+// Listar destinos disponíveis
+export async function getDestinos() {
+  const token = await storageService.getAuthToken();
+  if (!token) throw new Error('Usuário não autenticado');
+
+  const url = `${API_BASE_URL}turista/destinos`;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+    const data = await response.json();
+    if (!response.ok) return null;
+    return data;
+  } catch (error) {
+    console.error('[DestinoService] Erro ao buscar destinos:', error);
+    return null;
+  }
+}
+
+// Buscar detalhes de um destino específico
+export async function getDestinoById(destinoId: number) {
+  const token = await storageService.getAuthToken();
+  if (!token) throw new Error('Usuário não autenticado');
+
+  const url = `${API_BASE_URL}turista/destinos/${destinoId}`;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+    const data = await response.json();
+    if (!response.ok) return null;
+    return data;
+  } catch (error) {
+    console.error('[DestinoService] Erro ao buscar destino:', error);
+    return null;
+  }
+}
+
 // Lista as imagens de um destino
 export async function getDestinoImagens(destinoId: number) {
   const token = await storageService.getAuthToken();

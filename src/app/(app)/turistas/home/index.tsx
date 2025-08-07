@@ -8,6 +8,9 @@ import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { getNearbyPlaces, NearbyPlacesResponse } from '../../../../services/locationService';
 import Slider from '@react-native-community/slider';
+import { getAcomodacoes } from '../../../../services/acomodacaoService';
+import { getDestinos } from '../../../../services/destinoService';
+import { getReservas } from '../../../../services/reservasService';
 
 interface DestinationCardProps {
   title: string;
@@ -64,7 +67,125 @@ export default function HomeTurista() {
   const [loadingLocation, setLoadingLocation] = React.useState(true);
   const [nearbyPlaces, setNearbyPlaces] = React.useState<NearbyPlacesResponse | null>(null);
   const [loadingPlaces, setLoadingPlaces] = React.useState(false);
-  const [raio, setRaio] = React.useState(50); // Raio inicial 50km
+  const [raio, setRaio] = React.useState(50);
+  const [popularDestinos, setPopularDestinos] = React.useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = React.useState<any[]>([]);
+
+  // Buscar destinos populares e atividade recente
+  React.useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        // Carrega acomodações e destinos para mostrar como populares
+        const [acomodacoes, destinos, reservas] = await Promise.all([
+          getAcomodacoes(),
+          getDestinos(), 
+          getReservas()
+        ]);
+
+        // Prepara destinos populares (combinando acomodações e destinos)
+        const popularData = [];
+        
+        if (acomodacoes && acomodacoes.length > 0) {
+          acomodacoes.slice(0, 2).forEach((acomodacao: any) => {
+            popularData.push({
+              title: acomodacao.nome || `Acomodação ${acomodacao.id}`,
+              location: 'Brasil',
+              rating: acomodacao.rating || 4.5,
+              price: acomodacao.preco?.toString() || '120,00',
+              type: 'acomodacao'
+            });
+          });
+        }
+
+        if (destinos && destinos.length > 0) {
+          destinos.slice(0, 1).forEach((destino: any) => {
+            popularData.push({
+              title: destino.nome || `Destino ${destino.id}`,
+              location: destino.cidade || 'Brasil',
+              rating: destino.rating || 4.8,
+              price: '150,00',
+              type: 'destino'
+            });
+          });
+        }
+
+        // Se não há dados reais, usa dados de exemplo
+        if (popularData.length === 0) {
+          popularData.push(
+            { title: 'São Paulo', location: 'Brasil', rating: 4.8, price: '120,00', type: 'destino' },
+            { title: 'Rio de Janeiro', location: 'Brasil', rating: 4.9, price: '150,00', type: 'destino' },
+            { title: 'Salvador', location: 'Brasil', rating: 4.7, price: '100,00', type: 'destino' }
+          );
+        }
+
+        setPopularDestinos(popularData);
+
+        // Prepara atividade recente baseada nas reservas
+        const activityData = [];
+        if (reservas && reservas.length > 0) {
+          reservas.slice(0, 2).forEach((reserva: any, index: number) => {
+            const isRecent = index === 0;
+            activityData.push({
+              icon: isRecent ? 'checkmark-circle' : 'star',
+              title: isRecent ? 'Reserva confirmada' : 'Reserva atualizada',
+              time: isRecent ? '2h atrás' : '1 dia atrás',
+              description: `Sua reserva para "${reserva.acomodacao?.nome || reserva.atividade?.nome || 'reserva'}" foi ${isRecent ? 'confirmada' : 'atualizada'}`,
+              color: isRecent ? '#34C759' : '#FF9500'
+            });
+          });
+        }
+
+        // Se não há reservas, usa dados de exemplo
+        if (activityData.length === 0) {
+          activityData.push(
+            {
+              icon: 'checkmark-circle',
+              title: 'Reserva confirmada',
+              time: '2h atrás',
+              description: 'Sua reserva para "Centro Histórico de São Paulo" foi confirmada',
+              color: '#34C759'
+            },
+            {
+              icon: 'star',
+              title: 'Avaliação enviada',
+              time: '1 dia atrás',
+              description: 'Você avaliou o passeio "Vila Madalena" com 5 estrelas',
+              color: '#FF9500'
+            }
+          );
+        }
+
+        setRecentActivity(activityData);
+      } catch (error) {
+        console.error('Erro ao carregar dados do dashboard:', error);
+        // Em caso de erro, carrega dados de exemplo
+        setPopularDestinos([
+          { title: 'São Paulo', location: 'Brasil', rating: 4.8, price: '120,00', type: 'destino' },
+          { title: 'Rio de Janeiro', location: 'Brasil', rating: 4.9, price: '150,00', type: 'destino' },
+          { title: 'Salvador', location: 'Brasil', rating: 4.7, price: '100,00', type: 'destino' }
+        ]);
+        
+        setRecentActivity([
+          {
+            icon: 'checkmark-circle',
+            title: 'Reserva confirmada',
+            time: '2h atrás',
+            description: 'Sua reserva para "Centro Histórico de São Paulo" foi confirmada',
+            color: '#34C759'
+          },
+          {
+            icon: 'star',
+            title: 'Avaliação enviada',
+            time: '1 dia atrás',
+            description: 'Você avaliou o passeio "Vila Madalena" com 5 estrelas',
+            color: '#FF9500'
+          }
+        ]);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
 
   // Buscar lugares próximos sempre que localização ou raio mudar
   React.useEffect(() => {
@@ -245,52 +366,31 @@ export default function HomeTurista() {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <DestinationCard
-              title="São Paulo"
-              location="Brasil"
-              rating={4.8}
-              price="120,00"
-              onPress={() => console.log('São Paulo')}
-            />
-            <DestinationCard
-              title="Rio de Janeiro"
-              location="Brasil"
-              rating={4.9}
-              price="150,00"
-              onPress={() => console.log('Rio de Janeiro')}
-            />
-            <DestinationCard
-              title="Salvador"
-              location="Brasil"
-              rating={4.7}
-              price="100,00"
-              onPress={() => console.log('Salvador')}
-            />
+            {popularDestinos.map((destino, index) => (
+              <DestinationCard
+                key={index}
+                title={destino.title}
+                location={destino.location}
+                rating={destino.rating}
+                price={destino.price}
+                onPress={() => console.log(`Navegar para ${destino.title}`)}
+              />
+            ))}
           </ScrollView>
         </View>
         {/* Atividade Recente */}
         <View style={{ marginBottom: 28 }}>
           <Text style={styles.sectionTitle}>Atividade Recente</Text>
-          <View style={styles.activityCard}>
-            <View style={styles.activityHeader}>
-              <Ionicons name="checkmark-circle" size={20} color="#34C759" />
-              <Text style={styles.activityTitle}>Reserva confirmada</Text>
-              <Text style={styles.activityTime}>2h atrás</Text>
+          {recentActivity.map((activity, index) => (
+            <View key={index} style={styles.activityCard}>
+              <View style={styles.activityHeader}>
+                <Ionicons name={activity.icon} size={20} color={activity.color} />
+                <Text style={styles.activityTitle}>{activity.title}</Text>
+                <Text style={styles.activityTime}>{activity.time}</Text>
+              </View>
+              <Text style={styles.activityDescription}>{activity.description}</Text>
             </View>
-            <Text style={styles.activityDescription}>
-              Sua reserva para "Centro Histórico de São Paulo" foi confirmada
-            </Text>
-          </View>
-          <View style={styles.activityCard}>
-            <View style={styles.activityHeader}>
-              <Ionicons name="star" size={20} color="#FF9500" />
-              <Text style={styles.activityTitle}>Avaliação enviada</Text>
-              <Text style={styles.activityTime}>1 dia atrás</Text>
-            </View>
-            <Text style={styles.activityDescription}>
-              Você avaliou o passeio "Vila Madalena" com 5 estrelas
-            </Text>
-          </View>
+          ))}
         </View>
         {/* Ofertas Especiais */}
         <View style={{ marginBottom: 28 }}>
