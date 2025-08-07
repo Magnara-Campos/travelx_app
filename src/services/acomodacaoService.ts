@@ -141,6 +141,7 @@ export async function compararAcomodacoes(ids: number[]) {
     return selectedAcomodacoes;
   }
 
+  // Usando GET conforme a documentação da API
   const url = `${API_BASE_URL}turista/acomodacoes/comparar`;
   const headers = {
     'Content-Type': 'application/json',
@@ -152,9 +153,8 @@ export async function compararAcomodacoes(ids: number[]) {
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const response = await fetch(url, {
-      method: 'POST',
+      method: 'GET', // Mudado de POST para GET
       headers,
-      body: JSON.stringify({ ids }),
       signal: controller.signal
     });
 

@@ -4,7 +4,7 @@ import { storageService } from './storageService';
 // Interfaces para Avaliações
 interface Avaliacao {
   id: number;
-  rating: number;
+  nota: number; // Mudado de 'rating' para 'nota'
   comentario: string;
   turista_id: number;
   acomodacao_id?: number;
@@ -20,8 +20,8 @@ interface Avaliacao {
 }
 
 interface CriarAvaliacaoData {
-  rating: number;
-  comentario: string;
+  nota: number; // Mudado de 'rating' para 'nota'
+  comentario?: string; // Agora opcional
   acomodacao_id?: number;
   atividade_id?: number;
   destino_id?: number;
@@ -29,7 +29,7 @@ interface CriarAvaliacaoData {
 }
 
 interface AtualizarAvaliacaoData {
-  rating?: number;
+  nota?: number; // Mudado de 'rating' para 'nota'
   comentario?: string;
 }
 
@@ -37,7 +37,7 @@ interface AtualizarAvaliacaoData {
 const FALLBACK_AVALIACOES: Avaliacao[] = [
   {
     id: 1,
-    rating: 5,
+    nota: 5,
     comentario: 'Experiência incrível! Hotel com excelente atendimento e localização perfeita.',
     turista_id: 1,
     acomodacao_id: 1,
@@ -50,7 +50,7 @@ const FALLBACK_AVALIACOES: Avaliacao[] = [
   },
   {
     id: 2,
-    rating: 4,
+    nota: 4,
     comentario: 'Tour muito interessante, guia conhecia bem a história local.',
     turista_id: 1,
     atividade_id: 1,
@@ -63,7 +63,7 @@ const FALLBACK_AVALIACOES: Avaliacao[] = [
   },
   {
     id: 3,
-    rating: 5,
+    nota: 5,
     comentario: 'Cidade maravilhosa com paisagens deslumbrantes e cultura rica.',
     turista_id: 1,
     destino_id: 1,
