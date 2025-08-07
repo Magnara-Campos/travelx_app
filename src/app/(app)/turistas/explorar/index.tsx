@@ -42,7 +42,7 @@ const DestinoCard = ({ destino }: { destino: Destino | Restaurante }) => (
           </Text>
         </View>
         <Text style={styles.price}>
-          R$ {'preco_medio_refeicao' in destino ? destino.preco_medio_refeicao : destino.preco}
+          AOA {'preco_medio_refeicao' in destino ? destino.preco_medio_refeicao : destino.preco}
         </Text>
       </View>
     </View>
