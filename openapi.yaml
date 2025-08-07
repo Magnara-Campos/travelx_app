@@ -1,0 +1,1138 @@
+openapi: 3.0.3
+info:
+  title: API Laravel - Autenticação e Documentos
+  version: 1.0.0
+  description: |
+    API para autenticação de usuários, upload de documentos e consulta de lugares próximos.
+    
+    - Autenticação via Bearer Token (Sanctum)
+    - Middlewares de autorização por tipo de usuário
+    - Validação robusta nos endpoints
+    
+    **Tipos de usuário:** administrador, guiaTurista, turista
+servers:
+  - url: http://localhost/api/v1
+    description: Localhost
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sobrenome:
+          type: string
+        email:
+          type: string
+        tipo_usuario:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    Documento:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        tipo_documento:
+          type: string
+        nome_arquivo:
+          type: string
+        caminho_arquivo:
+          type: string
+        tamanho_arquivo:
+          type: integer
+        formato_arquivo:
+          type: string
+        status_analise:
+          type: string
+        comentario_analise:
+          type: string
+    AuthToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      summary: Registro de novo usuário
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - sobrenome
+                - email
+                - password
+                - tipo_usuario
+              properties:
+                name:
+                  type: string
+                sobrenome:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                tipo_usuario:
+                  type: string
+                  enum: [administrador, guiaTurista, turista]
+                documentos:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      tipo_documento:
+                        type: string
+                        enum: [Passaporte, Documento_Identidade, Licenca_Guia]
+                      arquivo:
+                        type: string
+                        format: binary
+                perfil_profissional:
+                  type: object
+                  properties:
+                    nome:
+                      type: string
+      responses:
+        '201':
+          description: Usuário registrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        '422':
+          description: Erro de validação
+  /auth/login:
+    post:
+      summary: Login do usuário
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        '422':
+          description: Erro de validação
+  /user:
+    get:
+      summary: Retorna o usuário autenticado
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuário autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Não autenticado
+  /auth/logout:
+    post:
+      summary: Logout do usuário
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout realizado com sucesso
+        '401':
+          description: Não autenticado
+  /auth/forgot-password:
+    post:
+      summary: Solicita link de redefinição de senha
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Link de redefinição enviado
+        '422':
+          description: Erro de validação
+  /auth/reset-password:
+    post:
+      summary: Redefine a senha usando o token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - token
+                - password
+                - password_confirmation
+              properties:
+                email:
+                  type: string
+                token:
+                  type: string
+                password:
+                  type: string
+                password_confirmation:
+                  type: string
+      responses:
+        '200':
+          description: Senha redefinida com sucesso
+        '400':
+          description: Token inválido ou expirado
+        '422':
+          description: Erro de validação
+  /lugares-proximos:
+    get:
+      summary: Consulta lugares próximos
+      tags: [Lugares]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: latitude
+          schema:
+            type: number
+          required: true
+        - in: query
+          name: longitude
+          schema:
+            type: number
+          required: true
+        - in: query
+          name: raio
+          schema:
+            type: number
+          required: false
+          description: Raio em km (padrão 50)
+      responses:
+        '200':
+          description: Listagem de lugares próximos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paisagens:
+                    type: array
+                    items:
+                      type: object
+                  acomodacoes:
+                    type: array
+                    items:
+                      type: object
+                  restaurantes:
+                    type: array
+                    items:
+                      type: object
+                  eventos:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Não autenticado
+  /turista/perfil:
+    get:
+      summary: Visualizar perfil do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dados do perfil
+    put:
+      summary: Atualizar perfil do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                sobrenome:
+                  type: string
+                telefone:
+                  type: string
+                data_nascimento:
+                  type: string
+                  format: date
+                genero:
+                  type: string
+                  enum: [Masculino, Feminino, Outro]
+      responses:
+        '200':
+          description: Perfil atualizado
+
+  /turista/documentos:
+    get:
+      summary: Listar documentos do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de documentos
+    post:
+      summary: Upload de documento do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - tipo_documento
+                - arquivo
+              properties:
+                tipo_documento:
+                  type: string
+                  enum: [Passaporte, Documento_Identidade, Licenca_Guia]
+                arquivo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Documento enviado
+
+  /turista/idiomas:
+    get:
+      summary: Listar idiomas do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de idiomas
+    put:
+      summary: Atualizar idiomas do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idiomas
+              properties:
+                idiomas:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - nivel
+                    properties:
+                      id:
+                        type: integer
+                      nivel:
+                        type: string
+                        enum: [Basico, Intermediario, Avancado, Nativo]
+      responses:
+        '200':
+          description: Idiomas atualizados
+
+  /turista/enderecos:
+    get:
+      summary: Listar endereços do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de endereços
+    put:
+      summary: Atualizar endereços do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - enderecos
+              properties:
+                enderecos:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - logradouro
+                      - numero
+                      - bairro
+                      - cidade
+                      - estado
+                      - cep
+                      - pais
+                    properties:
+                      logradouro:
+                        type: string
+                      numero:
+                        type: string
+                      bairro:
+                        type: string
+                      cidade:
+                        type: string
+                      estado:
+                        type: string
+                      cep:
+                        type: string
+                      pais:
+                        type: string
+      responses:
+        '200':
+          description: Endereços atualizados
+  /turista/reservas:
+    get:
+      summary: Listar reservas do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de reservas
+    post:
+      summary: Criar nova reserva
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - data_inicio
+                - data_fim
+                - quantidade_pessoas
+              properties:
+                acomodacao_id:
+                  type: integer
+                  description: ID da acomodação (opcional se for atividade)
+                atividade_id:
+                  type: integer
+                  description: ID da atividade (opcional se for acomodação)
+                data_inicio:
+                  type: string
+                  format: date
+                data_fim:
+                  type: string
+                  format: date
+                quantidade_pessoas:
+                  type: integer
+                valor_total:
+                  type: number
+                  format: float
+      responses:
+        '201':
+          description: Reserva criada
+
+  /turista/reservas/{id}:
+    get:
+      summary: Detalhar reserva
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes da reserva
+    put:
+      summary: Atualizar reserva
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data_inicio:
+                  type: string
+                  format: date
+                data_fim:
+                  type: string
+                  format: date
+                quantidade_pessoas:
+                  type: integer
+                status:
+                  type: string
+                  enum: [pendente, confirmada, cancelada]
+      responses:
+        '200':
+          description: Reserva atualizada
+    delete:
+      summary: Cancelar reserva
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reserva cancelada
+
+  /turista/avaliacoes:
+    get:
+      summary: Listar avaliações do turista
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de avaliações
+    post:
+      summary: Criar avaliação
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nota
+              properties:
+                nota:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                comentario:
+                  type: string
+                destino_id:
+                  type: integer
+                acomodacao_id:
+                  type: integer
+                atividade_id:
+                  type: integer
+                restaurante_id:
+                  type: integer
+      responses:
+        '201':
+          description: Avaliação criada
+
+  /turista/avaliacoes/{id}:
+    get:
+      summary: Detalhar avaliação
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes da avaliação
+    put:
+      summary: Atualizar avaliação
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nota:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                comentario:
+                  type: string
+      responses:
+        '200':
+          description: Avaliação atualizada
+    delete:
+      summary: Excluir avaliação
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Avaliação excluída
+
+  /turista/acomodacoes/{id}/imagens:
+    post:
+      summary: Upload de imagem para acomodação
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - imagem
+              properties:
+                imagem:
+                  type: string
+                  format: binary
+                descricao:
+                  type: string
+      responses:
+        '201':
+          description: Imagem enviada
+    get:
+      summary: Listar imagens da acomodação
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de imagens
+
+  /turista/atividades/{id}/imagens:
+    post:
+      summary: Upload de imagem para atividade
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - imagem
+              properties:
+                imagem:
+                  type: string
+                  format: binary
+                descricao:
+                  type: string
+      responses:
+        '201':
+          description: Imagem enviada
+    get:
+      summary: Listar imagens da atividade
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de imagens
+
+  /turista/destinos/{id}/imagens:
+    post:
+      summary: Upload de imagem para destino
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - imagem
+              properties:
+                imagem:
+                  type: string
+                  format: binary
+                descricao:
+                  type: string
+      responses:
+        '201':
+          description: Imagem enviada
+    get:
+      summary: Listar imagens do destino
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de imagens
+
+  /turista/restaurantes/{id}/imagens:
+    post:
+      summary: Upload de imagem para restaurante
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - imagem
+              properties:
+                imagem:
+                  type: string
+                  format: binary
+                descricao:
+                  type: string
+      responses:
+        '201':
+          description: Imagem enviada
+    get:
+      summary: Listar imagens do restaurante
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de imagens
+  /turista/acomodacoes/comparar:
+    get:
+      summary: Comparar acomodações (hotéis) por preço e avaliação
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: cidade
+          schema:
+            type: string
+          required: false
+          description: Filtrar por cidade
+        - in: query
+          name: tipo
+          schema:
+            type: string
+          required: false
+          description: Filtrar por tipo de acomodação
+      responses:
+        '200':
+          description: Comparação de acomodações
+          content:
+            application/json:
+              example:
+                mais_barato:
+                  id: 1
+                  nome: Hotel Simples
+                  preco_medio_noite: 100
+                  avaliacao_media: 3.5
+                  imagem: url
+                melhor_avaliado:
+                  id: 2
+                  nome: Hotel Luxo
+                  preco_medio_noite: 350
+                  avaliacao_media: 4.9
+                  imagem: url
+                lista:
+                  - id: 1
+                    nome: Hotel Simples
+                    preco_medio_noite: 100
+                    avaliacao_media: 3.5
+                    imagem: url
+                  - id: 2
+                    nome: Hotel Luxo
+                    preco_medio_noite: 350
+                    avaliacao_media: 4.9
+                    imagem: url
+
+  /turista/restaurantes/comparar:
+    get:
+      summary: Comparar restaurantes por preço e avaliação
+      tags: [Turista]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: cidade
+          schema:
+            type: string
+          required: false
+          description: Filtrar por cidade
+        - in: query
+          name: tipo
+          schema:
+            type: string
+          required: false
+          description: Filtrar por tipo de restaurante
+      responses:
+        '200':
+          description: Comparação de restaurantes
+          content:
+            application/json:
+              example:
+                mais_barato:
+                  id: 10
+                  nome: Restaurante Popular
+                  preco_medio_noite: 20
+                  avaliacao_media: 3.0
+                  imagem: url
+                melhor_avaliado:
+                  id: 12
+                  nome: Restaurante Gourmet
+                  preco_medio_noite: 120
+                  avaliacao_media: 4.8
+                  imagem: url
+                lista:
+                  - id: 10
+                    nome: Restaurante Popular
+                    preco_medio_noite: 20
+                    avaliacao_media: 3.0
+                    imagem: url
+                  - id: 12
+                    nome: Restaurante Gourmet
+                    preco_medio_noite: 120
+                    avaliacao_media: 4.8
+                    imagem: url
+  /comunidade/posts:
+    get:
+      summary: Listar postagens da comunidade
+      tags: [Comunidade]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de postagens
+          content:
+            application/json:
+              example:
+                data:
+                  - id: 1
+                    user: { id: 5, name: "Maria" }
+                    titulo: "Dica de passeio em Maputo"
+                    conteudo: "Fui ao evento X e recomendo!"
+                    tipo: "evento"
+                    imagem: null
+                    comentarios: []
+                    created_at: "2024-06-22T10:00:00Z"
+    post:
+      summary: Criar nova postagem
+      tags: [Comunidade]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - titulo
+                - conteudo
+              properties:
+                titulo:
+                  type: string
+                conteudo:
+                  type: string
+                tipo:
+                  type: string
+                  description: evento, destino, geral
+                imagem:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Postagem criada
+          content:
+            application/json:
+              example:
+                id: 2
+                user: { id: 6, name: "João" }
+                titulo: "Melhor restaurante de Maputo"
+                conteudo: "Fui no Y e adorei!"
+                tipo: "restaurante"
+                imagem: null
+                comentarios: []
+                created_at: "2024-06-22T11:00:00Z"
+
+  /comunidade/posts/{id}:
+    get:
+      summary: Detalhar postagem da comunidade
+      tags: [Comunidade]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes da postagem
+          content:
+            application/json:
+              example:
+                id: 1
+                user: { id: 5, name: "Maria" }
+                titulo: "Dica de passeio em Maputo"
+                conteudo: "Fui ao evento X e recomendo!"
+                tipo: "evento"
+                imagem: null
+                comentarios:
+                  - id: 10
+                    user: { id: 7, name: "Carlos" }
+                    conteudo: "Obrigado pela dica!"
+                    respostas: []
+                    reacoes: []
+                    created_at: "2024-06-22T12:00:00Z"
+                created_at: "2024-06-22T10:00:00Z"
+
+  /comunidade/posts/{id}/comentarios:
+    post:
+      summary: Comentar em uma postagem
+      tags: [Comunidade]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conteudo
+              properties:
+                conteudo:
+                  type: string
+                parent_id:
+                  type: integer
+                  description: ID do comentário pai (para resposta)
+      responses:
+        '201':
+          description: Comentário criado
+          content:
+            application/json:
+              example:
+                id: 10
+                user: { id: 7, name: "Carlos" }
+                conteudo: "Obrigado pela dica!"
+                respostas: []
+                reacoes: []
+                created_at: "2024-06-22T12:00:00Z"
+
+  /comunidade/comentarios/{id}/respostas:
+    get:
+      summary: Listar respostas de um comentário
+      tags: [Comunidade]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de respostas
+          content:
+            application/json:
+              example:
+                data:
+                  - id: 11
+                    user: { id: 8, name: "Ana" }
+                    conteudo: "Também gostei desse evento!"
+                    respostas: []
+                    reacoes: []
+                    created_at: "2024-06-22T13:00:00Z"
+
+  /comunidade/comentarios/{id}/reacoes:
+    post:
+      summary: Reagir a um comentário
+      tags: [Comunidade]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tipo
+              properties:
+                tipo:
+                  type: string
+                  description: curtir, amei, etc
+      responses:
+        '201':
+          description: Reação criada
+          content:
+            application/json:
+              example:
+                id: 20
+                user: { id: 9, name: "Pedro" }
+                tipo: "curtir"
+                created_at: "2024-06-22T13:10:00Z"
+    get:
+      summary: Listar reações de um comentário
+      tags: [Comunidade]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de reações
+          content:
+            application/json:
+              example:
+                data:
+                  - id: 20
+                    user: { id: 9, name: "Pedro" }
+                    tipo: "curtir"
+                    created_at: "2024-06-22T13:10:00Z"
