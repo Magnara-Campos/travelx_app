@@ -37,7 +37,7 @@ const FavoritoCard = ({ favorito, onRemove }: { favorito: Favorito; onRemove: (i
           </View>
         )}
         {favorito.preco && (
-          <Text style={styles.price}>R$ {favorito.preco}</Text>
+          <Text style={styles.price}>Kz {favorito.preco}</Text>
         )}
         <Text style={styles.typeText}>
           {favorito.tipo === 'acomodacao' ? 'Acomodação' : 'Destino'}

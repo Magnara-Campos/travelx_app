@@ -84,7 +84,7 @@ const ExploreCard = ({ item, onSelect, isSelected }: { item: ExploreItem; onSele
             <Ionicons name="star" size={14} color="#FF9500" />
             <Text style={styles.ratingText}>{item.rating}</Text>
           </View>
-          {'preco' in item && <Text style={styles.price}>R$ {item.preco}</Text>}
+          {'preco' in item && <Text style={styles.price}>Kz {item.preco}</Text>}
           {'cidade' in item && item.cidade && <Text style={styles.location}>{item.cidade}</Text>}
           <Text style={styles.typeTag}>
             {item.tipo === 'acomodacao' ? 'Acomodação' : 'Destino'}
@@ -283,7 +283,7 @@ export default function ExplorarTurista() {
                 {comparisonData.map((item: any, index: number) => (
                   <View key={index} style={styles.comparisonItem}>
                     <Text style={styles.comparisonTitle}>{item.nome}</Text>
-                    <Text>Preço: R$ {item.preco}</Text>
+                    <Text>Preço: Kz {item.preco}</Text>
                     <Text>Rating: {item.rating}</Text>
                     <Text>Descrição: {item.descricao}</Text>
                   </View>

@@ -219,7 +219,7 @@ export default function DetalhesItem() {
             {tipo === 'acomodacao' && item.preco && (
               <View style={styles.metaItem}>
                 <Ionicons name="cash" size={16} color="#34C759" />
-                <Text style={styles.metaText}>R$ {item.preco}</Text>
+                <Text style={styles.metaText}>Kz {item.preco}</Text>
               </View>
             )}
           </View>

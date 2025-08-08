@@ -44,7 +44,7 @@ const ViagemCard = ({ reserva, onEdit, onDelete }: { reserva: Reserva; onEdit: (
           {formatDate(reserva.data_inicio)} - {formatDate(reserva.data_fim)}
         </Text>
         <Text style={styles.cardDesc}>
-          {reserva.quantidade_pessoas} pessoa(s) - R$ {reserva.valor_total}
+          {reserva.quantidade_pessoas} pessoa(s) - Kz {reserva.valor_total}
         </Text>
         <Text style={[styles.status, { color: getStatusColor(reserva.status) }]}>
           {reserva.status || 'Pendente'}

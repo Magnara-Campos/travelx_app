@@ -34,7 +34,7 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ title, location, rati
           <Ionicons name="star" size={14} color="#FF9500" />
           <Text style={styles.ratingText}>{rating}</Text>
         </View>
-        <Text style={styles.priceText}>R$ {price}</Text>
+        <Text style={styles.priceText}>Kz {price}</Text>
       </View>
     </View>
   </TouchableOpacity>
