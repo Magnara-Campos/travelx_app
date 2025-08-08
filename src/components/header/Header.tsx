@@ -30,7 +30,7 @@ const cores = {
   },
 };
 
-const DRAWER_WIDTH = Dimensions.get('window').width * 0.75;
+// const DRAWER_WIDTH = Dimensions.get('window').width * 0.75;
 
 export default function Header({
   nome,
@@ -42,8 +42,8 @@ export default function Header({
   onOpen,
 }: HeaderProps) {
   const tema = cores[tipoUsuario];
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const drawerAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
+  // const [drawerOpen, setDrawerOpen] = useState(false);
+  // const drawerAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
@@ -80,45 +80,18 @@ export default function Header({
 
   // Não renderiza header fixo
   return (
-    <>
-      {/* Drawer animado */}
-      {drawerOpen && (
-        <TouchableWithoutFeedback onPress={closeDrawer}>
-          <View style={styles.drawerOverlay}>
-            <Animated.View style={[styles.drawer, { left: drawerAnim }]}>
-              <BlurView intensity={70} tint={tipoUsuario === 'turista' ? 'light' : 'default'} style={StyleSheet.absoluteFill} />
-              <View style={[styles.drawerContent, { paddingTop: insets.top + 32 }]}>
-                {/* Avatar e nome */}
-                <View style={styles.avatarSection}>
-                  <View style={[styles.avatarWrapper, { borderColor: tema.fundo }]}>
-                    {avatarUrl ? (
-                      <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-                    ) : (
-                      <Ionicons name="person-circle" size={70} color={tema.fundo} />
-                    )}
-                  </View>
-                  <Text style={[styles.drawerNome, { color: tema.fundo }]}>{nome}</Text>
-                </View>
-                {/* Itens do menu */}
-                <View style={styles.drawerItemList}>
-                  <DrawerItem icon="home" label="Home" color="#4A90E2" onPress={() => goTo('Home')} gradiente={tema.gradiente} />
-                  <DrawerItem icon="compass" label="Explorar" color="#50C9C3" onPress={() => goTo('Explorar')} gradiente={tema.gradiente} />
-                  <DrawerItem icon="heart" label="Favoritos" color="#FF3B30" onPress={() => goTo('Favoritos')} gradiente={tema.gradiente} />
-                  <DrawerItem icon="airplane" label="Viagens" color="#34C759" onPress={() => goTo('Viagens')} gradiente={tema.gradiente} />
-                  <DrawerItem icon="person" label="Perfil" color="#8E8E93" onPress={() => goTo('Perfil')} gradiente={tema.gradiente} />
-                  <View style={styles.separator} />
-                  <DrawerItem icon="log-out" label="Sair" color="#FF3B30" onPress={() => goTo('Welcome')} gradiente={["#FF3B30", "#FFB199"]} />
-                </View>
-              </View>
-            </Animated.View>
-          </View>
-        </TouchableWithoutFeedback>
-      )}
-      {/* Botão flutuante para abrir o Drawer */}
-      <TouchableOpacity style={styles.fab} onPress={openDrawer}>
-        <Ionicons name="menu" size={32} color={tema.fundo} />
+    <View style={[styles.header, { backgroundColor: tema.fundo, paddingTop: insets.top + 8 }]}>
+      <TouchableOpacity onPress={onAvatarPress} style={styles.avatarWrapper}>
+        {avatarUrl ? (
+          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        ) : (
+          <Ionicons name="person-circle" size={40} color={tema.texto} />
+        )}
       </TouchableOpacity>
-    </>
+      <View style={styles.headerContent}>
+        <Text style={styles.headerTitle}>{titulo || nome}</Text>
+      </View>
+    </View>
   );
 }
 
