@@ -109,15 +109,6 @@ export default function HomeTurista() {
           });
         }
 
-        // Se não há dados reais, usa dados de exemplo
-        if (popularData.length === 0) {
-          popularData.push(
-            { title: 'São Paulo', location: 'Brasil', rating: 4.8, price: '120,00', type: 'destino' },
-            { title: 'Rio de Janeiro', location: 'Brasil', rating: 4.9, price: '150,00', type: 'destino' },
-            { title: 'Salvador', location: 'Brasil', rating: 4.7, price: '100,00', type: 'destino' }
-          );
-        }
-
         setPopularDestinos(popularData);
 
         // Prepara atividade recente baseada nas reservas
@@ -135,52 +126,9 @@ export default function HomeTurista() {
           });
         }
 
-        // Se não há reservas, usa dados de exemplo
-        if (activityData.length === 0) {
-          activityData.push(
-            {
-              icon: 'checkmark-circle',
-              title: 'Reserva confirmada',
-              time: '2h atrás',
-              description: 'Sua reserva para "Centro Histórico de São Paulo" foi confirmada',
-              color: '#34C759'
-            },
-            {
-              icon: 'star',
-              title: 'Avaliação enviada',
-              time: '1 dia atrás',
-              description: 'Você avaliou o passeio "Vila Madalena" com 5 estrelas',
-              color: '#FF9500'
-            }
-          );
-        }
-
         setRecentActivity(activityData);
       } catch (error) {
         console.error('Erro ao carregar dados do dashboard:', error);
-        // Em caso de erro, carrega dados de exemplo
-        setPopularDestinos([
-          { title: 'São Paulo', location: 'Brasil', rating: 4.8, price: '120,00', type: 'destino' },
-          { title: 'Rio de Janeiro', location: 'Brasil', rating: 4.9, price: '150,00', type: 'destino' },
-          { title: 'Salvador', location: 'Brasil', rating: 4.7, price: '100,00', type: 'destino' }
-        ]);
-        
-        setRecentActivity([
-          {
-            icon: 'checkmark-circle',
-            title: 'Reserva confirmada',
-            time: '2h atrás',
-            description: 'Sua reserva para "Centro Histórico de São Paulo" foi confirmada',
-            color: '#34C759'
-          },
-          {
-            icon: 'star',
-            title: 'Avaliação enviada',
-            time: '1 dia atrás',
-            description: 'Você avaliou o passeio "Vila Madalena" com 5 estrelas',
-            color: '#FF9500'
-          }
-        ]);
       }
     };
 

@@ -54,65 +54,7 @@ interface CriarReacaoData {
   tipo: string;
 }
 
-// Dados de fallback para quando a API não estiver disponível
-const FALLBACK_POSTS: Post[] = [
-  {
-    id: 1,
-    user: { id: 5, name: "Maria" },
-    titulo: "Dica de passeio em São Paulo",
-    conteudo: "Fui ao Museu do Ipiranga e recomendo muito! A exposição está incrível.",
-    tipo: "evento",
-    imagem: null,
-    comentarios: [
-      {
-        id: 10,
-        user: { id: 7, name: "Carlos" },
-        conteudo: "Obrigado pela dica! Vou visitar no próximo fim de semana.",
-        respostas: [],
-        reacoes: [
-          {
-            id: 20,
-            user: { id: 9, name: "Pedro" },
-            tipo: "curtir",
-            created_at: "2024-06-22T13:10:00Z"
-          }
-        ],
-        created_at: "2024-06-22T12:00:00Z"
-      }
-    ],
-    created_at: "2024-06-22T10:00:00Z"
-  },
-  {
-    id: 2,
-    user: { id: 6, name: "João" },
-    titulo: "Melhor restaurante da Vila Madalena",
-    conteudo: "Acabei de jantar no 'Taste' e foi uma experiência incrível! Pratos autorais e ambiente aconchegante.",
-    tipo: "restaurante",
-    imagem: null,
-    comentarios: [],
-    created_at: "2024-06-22T11:00:00Z"
-  }
-];
-
-const FALLBACK_COMENTARIOS: Comentario[] = [
-  {
-    id: 11,
-    user: { id: 8, name: "Ana" },
-    conteudo: "Também gostei muito desse lugar!",
-    respostas: [],
-    reacoes: [],
-    created_at: "2024-06-22T13:00:00Z"
-  }
-];
-
-const FALLBACK_REACOES: Reacao[] = [
-  {
-    id: 21,
-    user: { id: 10, name: "Julia" },
-    tipo: "amei",
-    created_at: "2024-06-22T13:15:00Z"
-  }
-];
+// Remover todas as constantes FALLBACK_*
 
 // Função auxiliar para verificar se a API está disponível
 async function isApiAvailable(): Promise<boolean> {
@@ -155,13 +97,13 @@ export async function getPosts(): Promise<Post[]> {
   
   if (!apiAvailable) {
     console.log('[ComunidadeService] Usando dados de fallback para posts');
-    return FALLBACK_POSTS;
+    // Removido: return FALLBACK_POSTS;
   }
 
   const token = await storageService.getAuthToken();
   if (!token) {
     console.log('[ComunidadeService] Usuário não autenticado, usando dados de fallback');
-    return FALLBACK_POSTS;
+    // Removido: return FALLBACK_POSTS;
   }
 
   const url = `${API_BASE_URL}comunidade/posts`;
@@ -182,21 +124,21 @@ export async function getPosts(): Promise<Post[]> {
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       console.log('[ComunidadeService] Resposta não é JSON, usando dados de fallback');
-      return FALLBACK_POSTS;
+      // Removido: return FALLBACK_POSTS;
     }
 
     const data = await response.json();
     if (!response.ok) {
       console.log('[ComunidadeService] Erro da API, usando dados de fallback');
-      return FALLBACK_POSTS;
+      // Removido: return FALLBACK_POSTS;
     }
 
     console.log('[ComunidadeService] Posts recebidos da API:', data);
-    return data.data && data.data.length > 0 ? data.data : FALLBACK_POSTS;
+    return data.data && data.data.length > 0 ? data.data : [];
   } catch (error) {
     console.error('[ComunidadeService] Erro ao buscar posts:', error);
     console.log('[ComunidadeService] Usando dados de fallback devido ao erro');
-    return FALLBACK_POSTS;
+    // Removido: return FALLBACK_POSTS;
   }
 }
 
@@ -322,14 +264,14 @@ export async function getPostById(id: number): Promise<Post | null> {
   const apiAvailable = await isApiAvailable();
   
   if (!apiAvailable) {
-    const post = FALLBACK_POSTS.find(p => p.id === id);
-    return post || FALLBACK_POSTS[0];
+    // Removido: const post = FALLBACK_POSTS.find(p => p.id === id);
+    // Removido: return post || FALLBACK_POSTS[0];
   }
 
   const token = await storageService.getAuthToken();
   if (!token) {
-    const post = FALLBACK_POSTS.find(p => p.id === id);
-    return post || FALLBACK_POSTS[0];
+    // Removido: const post = FALLBACK_POSTS.find(p => p.id === id);
+    // Removido: return post || FALLBACK_POSTS[0];
   }
 
   const url = `${API_BASE_URL}comunidade/posts/${id}`;
@@ -349,20 +291,20 @@ export async function getPostById(id: number): Promise<Post | null> {
 
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      const post = FALLBACK_POSTS.find(p => p.id === id);
-      return post || FALLBACK_POSTS[0];
+      // Removido: const post = FALLBACK_POSTS.find(p => p.id === id);
+      // Removido: return post || FALLBACK_POSTS[0];
     }
 
     const data = await response.json();
     if (!response.ok) {
-      const post = FALLBACK_POSTS.find(p => p.id === id);
-      return post || FALLBACK_POSTS[0];
+      // Removido: const post = FALLBACK_POSTS.find(p => p.id === id);
+      // Removido: return post || FALLBACK_POSTS[0];
     }
     return data;
   } catch (error) {
     console.error('[ComunidadeService] Erro ao buscar post:', error);
-    const post = FALLBACK_POSTS.find(p => p.id === id);
-    return post || FALLBACK_POSTS[0];
+    // Removido: const post = FALLBACK_POSTS.find(p => p.id === id);
+    // Removido: return post || FALLBACK_POSTS[0];
   }
 }
 
@@ -461,12 +403,12 @@ export async function getRespostasComentario(comentarioId: number): Promise<Come
   const apiAvailable = await isApiAvailable();
   
   if (!apiAvailable) {
-    return FALLBACK_COMENTARIOS;
+    // Removido: return FALLBACK_COMENTARIOS;
   }
 
   const token = await storageService.getAuthToken();
   if (!token) {
-    return FALLBACK_COMENTARIOS;
+    // Removido: return FALLBACK_COMENTARIOS;
   }
 
   const url = `${API_BASE_URL}comunidade/comentarios/${comentarioId}/respostas`;
@@ -486,15 +428,15 @@ export async function getRespostasComentario(comentarioId: number): Promise<Come
 
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      return FALLBACK_COMENTARIOS;
+      // Removido: return FALLBACK_COMENTARIOS;
     }
 
     const data = await response.json();
-    if (!response.ok) return FALLBACK_COMENTARIOS;
-    return data.data && data.data.length > 0 ? data.data : FALLBACK_COMENTARIOS;
+    if (!response.ok) return [];
+    return data.data && data.data.length > 0 ? data.data : [];
   } catch (error) {
     console.error('[ComunidadeService] Erro ao buscar respostas:', error);
-    return FALLBACK_COMENTARIOS;
+    return [];
   }
 }
 
@@ -583,12 +525,12 @@ export async function getReacoesComentario(comentarioId: number): Promise<Reacao
   const apiAvailable = await isApiAvailable();
   
   if (!apiAvailable) {
-    return FALLBACK_REACOES;
+    // Removido: return FALLBACK_REACOES;
   }
 
   const token = await storageService.getAuthToken();
   if (!token) {
-    return FALLBACK_REACOES;
+    // Removido: return FALLBACK_REACOES;
   }
 
   const url = `${API_BASE_URL}comunidade/comentarios/${comentarioId}/reacoes`;
@@ -608,15 +550,15 @@ export async function getReacoesComentario(comentarioId: number): Promise<Reacao
 
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      return FALLBACK_REACOES;
+      // Removido: return FALLBACK_REACOES;
     }
 
     const data = await response.json();
-    if (!response.ok) return FALLBACK_REACOES;
-    return data.data && data.data.length > 0 ? data.data : FALLBACK_REACOES;
+    if (!response.ok) return [];
+    return data.data && data.data.length > 0 ? data.data : [];
   } catch (error) {
     console.error('[ComunidadeService] Erro ao buscar reações:', error);
-    return FALLBACK_REACOES;
+    return [];
   }
 }
 
